@@ -131,14 +131,15 @@ class CapitalQuizForm implements ControllerInterface, FormInterface {
       $rank = db_select('country_quiz_results', 'r')
         ->fields('r', array('id'))
         ->condition('type', 'capital')
-        ->condition('percent', 100 / $_SESSION['country_quiz']['total'] * $_SESSION['country_quiz']['correct'], '>')
+        ->condition('percent', 100 / $_SESSION['country_quiz']['total'] * $_SESSION['country_quiz']['correct'], '>=')
         ->groupBy('percent')
         ->countQuery()
         ->execute()
         ->fetchField();
-      unset($_SESSION['country_quiz']);
 
-      drupal_set_message(t('Game over, you reached rank %rank!', array('%rank' => $rank + 1)));
+      drupal_set_message(t('Game over, you reached rank %rank with %correct out of %total answered correctly!', array('%rank' => $rank, '%correct' => $_SESSION['country_quiz']['correct'], '%total' => $_SESSION['country_quiz']['total'])));
+
+      unset($_SESSION['country_quiz']);
     }
   }
 
