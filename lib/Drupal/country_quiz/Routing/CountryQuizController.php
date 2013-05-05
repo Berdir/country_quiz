@@ -50,18 +50,19 @@ class CountryQuizController implements ControllerInterface {
     $header = array(t('Rank'), t('Name'), t('Result'), t('Percent'));
 
     $rows = array();
-    $rank = 1;
+    $rank = 0;
     $previous_percent = NULL;
     foreach ($result as $row) {
+       if ($previous_percent != $row->percent) {
+        $rank++;
+      }
       $rows[] = array(
         $rank,
         check_plain($row->name),
         $row->result,
         $row->percent . '%',
       );
-      if ($previous_percent != $row->percent) {
-        $rank++;
-      }
+
       $previous_percent = $row->percent;
     }
 

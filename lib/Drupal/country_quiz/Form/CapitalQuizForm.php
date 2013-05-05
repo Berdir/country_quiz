@@ -131,7 +131,7 @@ class CapitalQuizForm implements ControllerInterface, FormInterface {
       $rank = db_select('country_quiz_results', 'r')
         ->fields('r', array('id'))
         ->condition('type', 'capital')
-        ->condition('percent', 100 / $_SESSION['country_quiz']['total'] * $_SESSION['country_quiz']['correct'])
+        ->condition('percent', 100 / $_SESSION['country_quiz']['total'] * $_SESSION['country_quiz']['correct'], '>')
         ->groupBy('percent')
         ->countQuery()
         ->execute()
