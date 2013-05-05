@@ -1,6 +1,6 @@
 country_quiz:
   pattern: 'country_quiz'
   defaults:
-    _form: 'Drupal\country_quiz\Form\CapitolQuizForm'
+    _form: 'Drupal\country_quiz\Form\CapitalQuizForm'
   requirements:
     _permission: 'access content'

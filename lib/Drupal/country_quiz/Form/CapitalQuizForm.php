@@ -37,26 +37,61 @@ class CapitalQuizForm implements ControllerInterface, FormInterface {
    */
   public function buildForm(array $form, array &$form_state) {
 
-    if (empty($form_state['country'])) {
+    drupal_set_title(t('Capital quiz'));
+
+    if (empty($_SESSION['country_quiz']['name'])) {
+      $_SESSION['country_quiz']['name'] = '';
+      $_SESSION['country_quiz']['correct'] = 0;
+      $_SESSION['country_quiz']['wrong'] = 0;
+
+      $form['name'] = array(
+        '#type' => 'textfield',
+        '#title' => t('Your name'),
+        '#maxlength' => 20,
+        '#required' => TRUE,
+        '#description' => t('Hello, please provide your name.'),
+      );
+    }
+    else {
+      $args = array(
+        '%name' => $_SESSION['country_quiz']['name'],
+        '%correct' => $_SESSION['country_quiz']['correct'],
+        '%total' => $_SESSION['country_quiz']['correct'] + $_SESSION['country_quiz']['wrong'],
+      );
+      $args['%percent'] = $args['%total'] ? round(100 / $args['%total'] * $args['%correct'], 0) . '%' : '100%';
+      $form['quiz_name'] = array(
+        '#type' => 'item',
+        '#markup' => t('Hello %name, you have answered %correct out of %total (%percent) questions correctly.', $args),
+      );
+    }
+
+    if (empty($_SESSION['country_quiz']['country'])) {
       $countries = json_decode(file_get_contents(drupal_get_path('module', 'country_quiz') . '/country-capital.json'));
-      dpm($countries);
+      $_SESSION['country_quiz']['country'] = $countries[array_rand($countries)];
     }
 
     $form['question'] = array(
       '#type' => 'item',
-      '#title' => t('Question'),
-      '#description' => t('Upload an OPML file containing a list of feeds to be imported.'),
+      '#description' => '<h3>' . t('Name the capital of %country.', array('%country' => $_SESSION['country_quiz']['country']->country)) . '</h3>',
     );
-    $form['remote'] = array(
-      '#type' => 'url',
-      '#title' => t('OPML Remote URL'),
-      '#maxlength' => 1024,
-      '#description' => t('Enter the URL of an OPML file. This file will be downloaded and processed only once on submission of the form.'),
+    $form['answer'] = array(
+      '#type' => 'textfield',
+      '#title' => t('Answer'),
+      '#maxlength' => 255,
+      '#required' => TRUE,
+      '#description' => t('Enter the name of the capital.'),
+      '#attributes' => array('autofocus' => 'autofocus'),
     );
     $form['actions'] = array('#type' => 'actions');
     $form['actions']['submit'] = array(
       '#type' => 'submit',
-      '#value' => t('Import'),
+      '#value' => t('Answer'),
+    );
+    $form['actions']['restart'] = array(
+      '#type' => 'submit',
+      '#value' => t('New game'),
+      '#limit_validation_errors' => array(),
+      '#submit' => array(array($this, 'restartSubmit')),
     );
 
     return $form;
@@ -73,7 +108,28 @@ class CapitalQuizForm implements ControllerInterface, FormInterface {
    * {@inheritdoc}
    */
   public function submitForm(array &$form, array &$form_state) {
+    if (isset($form_state['values']['name'])) {
+      $_SESSION['country_quiz']['name'] = $form_state['values']['name'];
+    }
 
+    if (drupal_strtolower($form_state['values']['answer']) == drupal_strtolower($_SESSION['country_quiz']['country']->capital)) {
+      $_SESSION['country_quiz']['correct']++;
+      drupal_set_message(t('Correct answer!'));
+    }
+    else {
+      $_SESSION['country_quiz']['wrong']++;
+      drupal_set_message(t('Wrong answer, the capital of %country is %capital.', array('%country' => $_SESSION['country_quiz']['country']->country, '%capital' => $_SESSION['country_quiz']['country']->capital)), 'error');
+    }
+    $form_state['redirect'] = 'country_quiz';
+    unset($_SESSION['country_quiz']['country']);
+  }
+
+  /**
+   * Form callback to restart the form.
+   */
+  public function restartSubmit(array &$form, array &$form_state) {
+    unset($_SESSION['country_quiz']);
+    $form_state['redirect'] = 'country_quiz';
   }
 
 }
