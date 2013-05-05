@@ -1,1 +1,18 @@
 <?php
+
+/**
+ * Implements hook_menu().
+ */
+function country_quiz_menu() {
+  $items['capital_quiz'] = array(
+    'route_name' => 'capital_quiz',
+    'title' => 'Capital quiz',
+  );
+
+  $items['capital_quiz/ranking'] = array(
+    'route_name' => 'capital_quiz_ranking',
+    'title' => 'Capital quiz top results',
+  );
+
+  return $items;
+}

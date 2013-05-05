@@ -1,0 +1,44 @@
+<?php
+
+/**
+ * Implements hook_schema().
+ */
+function country_quiz_schema() {
+  $schema['country_quiz_results'] = array(
+    'description' => 'Quiz results',
+    'fields' => array(
+      'id' => array(
+        'type' => 'serial',
+        'unsigned' => TRUE,
+        'not null' => TRUE,
+        'description' => 'Primary key',
+      ),
+      'name' => array(
+        'type' => 'varchar',
+        'length' => 100,
+        'not null' => TRUE,
+        'description' => 'Name of the person filling out the quiz',
+      ),
+      'percent' => array(
+        'type' => 'int',
+        'size' => 'tiny',
+        'description' => 'Percent as an integer',
+        'not null' => TRUE,
+      ),
+      'result' => array(
+        'type' => 'varchar',
+        'length' => 20,
+        'not null' => TRUE,
+        'description' => 'Result in the form of correct/total',
+      ),
+      'type' => array(
+        'type' => 'varchar',
+        'length' => 20,
+        'not null' => TRUE,
+        'description' => 'Quiz type',
+      ),
+    ),
+    'primary key' => array('id'),
+  );
+  return $schema;
+}

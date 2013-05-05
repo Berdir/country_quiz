@@ -15,9 +15,6 @@ use Symfony\Component\DependencyInjection\ContainerInterface;
  */
 class CapitalQuizForm implements ControllerInterface, FormInterface {
 
-  public function __construct() {
-  }
-
   /**
    * {@inheritdoc}
    */
@@ -36,13 +33,10 @@ class CapitalQuizForm implements ControllerInterface, FormInterface {
    * {@inheritdoc}
    */
   public function buildForm(array $form, array &$form_state) {
-
-    drupal_set_title(t('Capital quiz'));
-
     if (empty($_SESSION['country_quiz']['name'])) {
       $_SESSION['country_quiz']['name'] = '';
       $_SESSION['country_quiz']['correct'] = 0;
-      $_SESSION['country_quiz']['wrong'] = 0;
+      $_SESSION['country_quiz']['total'] = 0;
 
       $form['name'] = array(
         '#type' => 'textfield',
@@ -56,7 +50,7 @@ class CapitalQuizForm implements ControllerInterface, FormInterface {
       $args = array(
         '%name' => $_SESSION['country_quiz']['name'],
         '%correct' => $_SESSION['country_quiz']['correct'],
-        '%total' => $_SESSION['country_quiz']['correct'] + $_SESSION['country_quiz']['wrong'],
+        '%total' => $_SESSION['country_quiz']['total'],
       );
       $args['%percent'] = $args['%total'] ? round(100 / $args['%total'] * $args['%correct'], 0) . '%' : '100%';
       $form['quiz_name'] = array(
@@ -112,16 +106,30 @@ class CapitalQuizForm implements ControllerInterface, FormInterface {
       $_SESSION['country_quiz']['name'] = $form_state['values']['name'];
     }
 
+    $_SESSION['country_quiz']['total']++;
     if (drupal_strtolower($form_state['values']['answer']) == drupal_strtolower($_SESSION['country_quiz']['country']->capital)) {
       $_SESSION['country_quiz']['correct']++;
       drupal_set_message(t('Correct answer!'));
     }
     else {
-      $_SESSION['country_quiz']['wrong']++;
       drupal_set_message(t('Wrong answer, the capital of %country is %capital.', array('%country' => $_SESSION['country_quiz']['country']->country, '%capital' => $_SESSION['country_quiz']['country']->capital)), 'error');
     }
-    $form_state['redirect'] = 'country_quiz';
+    $form_state['redirect'] = 'capital_quiz';
     unset($_SESSION['country_quiz']['country']);
+
+    // If the total is > 15, end the quiz.
+    if ($_SESSION['country_quiz']['total'] >= 15) {
+      db_insert('country_quiz_results')
+        ->fields(array(
+          'name' => $_SESSION['country_quiz']['name'],
+          'type' => 'capital',
+          'percent' => 100 / $_SESSION['country_quiz']['total'] * $_SESSION['country_quiz']['correct'],
+          'result' => $_SESSION['country_quiz']['correct'] . ' / ' . $_SESSION['country_quiz']['total'],
+        ))
+        ->execute();
+      unset($_SESSION['country_quiz']);
+      drupal_set_message(t('Game over!'));
+    }
   }
 
   /**
@@ -129,7 +137,7 @@ class CapitalQuizForm implements ControllerInterface, FormInterface {
    */
   public function restartSubmit(array &$form, array &$form_state) {
     unset($_SESSION['country_quiz']);
-    $form_state['redirect'] = 'country_quiz';
+    $form_state['redirect'] = 'capital_quiz';
   }
 
 }
