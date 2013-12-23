@@ -1,3 +1,4 @@
 name: 'Country Quiz'
 description: 'A country quiz for globi'
 core: 8.x
+type: module

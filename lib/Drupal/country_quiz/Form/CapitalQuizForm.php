@@ -6,21 +6,14 @@
  */
 
 namespace Drupal\country_quiz\Form;
-use Drupal\Core\ControllerInterface;
-use Drupal\Core\Form\FormInterface;
+
+use Drupal\Core\Form\FormBase;
 use Symfony\Component\DependencyInjection\ContainerInterface;
 
 /**
  *
  */
-class CapitalQuizForm implements ControllerInterface, FormInterface {
-
-  /**
-   * {@inheritdoc}
-   */
-  public static function create(ContainerInterface $container) {
-    return new static();
-  }
+class CapitalQuizForm extends FormBase {
 
   /**
    * {@inheritdoc}
@@ -43,7 +36,7 @@ class CapitalQuizForm implements ControllerInterface, FormInterface {
         '#title' => t('Your name'),
         '#maxlength' => 20,
         '#required' => TRUE,
-        '#description' => t('Hello, please provide your name.'),
+        '#description' =>$this->t('Hello, please provide your name.'),
       );
     }
     else {
@@ -55,7 +48,7 @@ class CapitalQuizForm implements ControllerInterface, FormInterface {
       $args['%percent'] = $args['%total'] ? round(100 / $args['%total'] * $args['%correct'], 0) . '%' : '100%';
       $form['quiz_name'] = array(
         '#type' => 'item',
-        '#markup' => t('Hello %name, you have answered %correct out of %total (%percent) questions correctly.', $args),
+        '#markup' =>$this->t('Hello %name, you have answered %correct out of %total (%percent) questions correctly.', $args),
       );
     }
 
@@ -66,24 +59,25 @@ class CapitalQuizForm implements ControllerInterface, FormInterface {
 
     $form['question'] = array(
       '#type' => 'item',
-      '#description' => '<h3>' . t('Name the capital of %country.', array('%country' => $_SESSION['country_quiz']['country']->country)) . '</h3>',
+      '#description' => '<h3>' .$this->t('Name the capital of %country.', array('%country' => $_SESSION['country_quiz']['country']->country)) . '</h3>',
     );
     $form['answer'] = array(
       '#type' => 'textfield',
-      '#title' => t('Answer'),
+      '#title' =>$this->t('Answer'),
       '#maxlength' => 255,
       '#required' => TRUE,
-      '#description' => t('Enter the name of the capital.'),
+      '#description' =>$this->t('Enter the name of the capital.'),
       '#attributes' => array('autofocus' => 'autofocus'),
     );
     $form['actions'] = array('#type' => 'actions');
     $form['actions']['submit'] = array(
       '#type' => 'submit',
-      '#value' => t('Answer'),
+      '#value' =>$this->t('Answer'),
+      '#attributes' => array('class' => array('button--primary')),
     );
     $form['actions']['restart'] = array(
       '#type' => 'submit',
-      '#value' => t('New game'),
+      '#value' =>$this->t('New game'),
       '#limit_validation_errors' => array(),
       '#submit' => array(array($this, 'restartSubmit')),
     );
@@ -109,10 +103,10 @@ class CapitalQuizForm implements ControllerInterface, FormInterface {
     $_SESSION['country_quiz']['total']++;
     if (drupal_strtolower($form_state['values']['answer']) == drupal_strtolower($_SESSION['country_quiz']['country']->capital)) {
       $_SESSION['country_quiz']['correct']++;
-      drupal_set_message(t('Correct answer!'));
+      drupal_set_message($this->t('Correct answer!'));
     }
     else {
-      drupal_set_message(t('Wrong answer, the capital of %country is %capital.', array('%country' => $_SESSION['country_quiz']['country']->country, '%capital' => $_SESSION['country_quiz']['country']->capital)), 'error');
+      drupal_set_message($this->t('Wrong answer, the capital of %country is %capital.', array('%country' => $_SESSION['country_quiz']['country']->country, '%capital' => $_SESSION['country_quiz']['country']->capital)), 'error');
     }
     $form_state['redirect'] = 'capital_quiz';
     unset($_SESSION['country_quiz']['country']);
